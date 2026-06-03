@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Crochê</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Calculadora de Preços
+        </h1>
+    </header>
+
+    <section>
+        <div>
+            Linha usada: <br>
+            R$ <input type="number" class="num" id="stringPrice" placeholder="Preço" min="0"><br>
+            <input type="number" class="num" id="stringWeight" placeholder="Peso" min="0"> gramas
+            <br>
+
+            <br>
+            Produto:
+            <input type="number" class="num" id="productWeight" placeholder="Peso" min="0"> gramas
+            <br>
+
+            <br>
+            Horas: <br>
+            Trabalhadas: <input type="number" class="num" id="workedHours" placeholder="Horas" min="0"> horas <br>
+            Preço: R$ <input type="number" class="num" id="hoursValue" placeholder="Preço" min="1">
+            <br>
+
+            <br>
+            Lucro:
+            <input type="number" class="num" id="profit" placeholder="Porcento" min="0">%
+
+            <p id="discountLabel">
+                Desconto?
+                <br>
+                <input type="radio" name="disc" class="discount" id="discount_true">
+                <label for="disc">Sim</label>
+                <br>
+                <input type="radio" name="disc" class="discount" id="discount_false" checked>
+                <label for="disc">Não</label>
+            </p>
+
+            <input type="button" value="Calcular" id="calc">
+            <input type="button" value="Limpar" id="clear">
+            <input type="button" value="Tutorial" id="tutorial">
+
+        <div id="res">
+        </div>
+    </section>
+
+    <footer>
+        <p>OBS: Minha namorada é muito linda 🤭</p>
+    </footer>
+
+    <script src="script.js"></script>
+    
+</body>
+</html>
