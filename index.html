@@ -18,12 +18,12 @@
         <div>
             Linha usada: <br>
             R$ <input type="number" class="num" id="stringPrice" placeholder="Preço" min="0"><br>
-            <input type="number" class="num" id="stringWeight" placeholder="Peso" min="0"> gramas
+            <input type="number" class="num" id="stringWeight" placeholder="Peso" min="1"> gramas
             <br>
 
             <br>
             Produto:
-            <input type="number" class="num" id="productWeight" placeholder="Peso" min="0"> gramas
+            <input type="number" class="num" id="productWeight" placeholder="Peso" min="1"> gramas
             <br>
 
             <br>
@@ -37,13 +37,13 @@
             <input type="number" class="num" id="profit" placeholder="Porcento" min="0">%
 
             <p id="discountLabel">
+                <input type="checkbox" name="disc" id="disc">
                 Desconto?
-                <br>
-                <input type="radio" name="disc" class="discount" id="discount_true">
-                <label for="disc">Sim</label>
-                <br>
-                <input type="radio" name="disc" class="discount" id="discount_false" checked>
-                <label for="disc">Não</label>
+            </p>
+
+            <p id="multiCalc">
+                <input type="checkbox" name="multi" id="multi">
+                Calcular mais de uma linha? <br>
             </p>
 
             <input type="button" value="Calcular" id="calc">
