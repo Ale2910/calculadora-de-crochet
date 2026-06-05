@@ -30,8 +30,11 @@ let inputs = {
 }
 
 let isThereValidInput = null
+let allInputsAreValid = null
+let isProfitValid = null
 let isThereBlankInput = null
 let allInputsAreBlank = null
+// Fazer um codigo nesse e no setInputsAsValues pra ter parametros e setar um apenas
 const updateInputs = () => {
     inputs.string.price = window.document.getElementById('stringPrice')
     inputs.string.weight = window.document.getElementById('stringWeight')
@@ -42,6 +45,7 @@ const updateInputs = () => {
 
     isThereValidInput = inputs.string.price.value || inputs.string.weight.value || inputs.productWeight.value || inputs.hours.worked.value || inputs.hours.value.value || inputs.profit.value || inputs.discount.value || inputs.discount.box.checked
     allInputsAreValid = inputs.string.price.value && inputs.string.weight.value && inputs.productWeight.value && inputs.hours.worked.value && inputs.hours.value.value
+    isProfitValid = inputs.profit.value && inputs.profit.value != ''
     isThereBlankInput = !inputs.string.price.value || !inputs.string.weight.value || !inputs.productWeight.value || !inputs.hours.worked.value || !inputs.hours.value.value
     allInputsAreBlank = !inputs.string.price.value && !inputs.string.weight.value && !inputs.productWeight.value && !inputs.hours.worked.value && !inputs.hours.value.value
 
@@ -128,6 +132,56 @@ const toggleDiscount = () => {
     }
 }
 
+let results = new Array()
+let ids = new Array()
+let idsToSHow = null
+let redoCalcsWithoutProfit = false
+let calcsToBeRecalculated = new Array()
+const toggleMulti = () => {
+    bypassVerification? bypassVerification = false: 0
+    
+    if (inputs.multi.box.checked) {
+        ids = new Array()
+        if (results.length >= 1) {
+            let showWarning = false
+            for (let calc of results) {
+                if (Number(calc.profit) != 0) {
+                    showWarning? 0: showWarning = 1
+                    ids.push(calc.id)
+                }
+                if (!calc.multiChecked && calc.profit != 0) showWarning? 0: showWarning = 2
+            }
+            if (showWarning) {
+                if (ids.length >= 2) {
+                    idsToSHow = ids.reverse().join(',')
+                    idsToSHow = idsToSHow.replace(',', 'e')
+                    idsToSHow = idsToSHow.split('')
+                    idsToSHow = idsToSHow.reverse().join(' ')
+                } else if (ids.length < 2) {
+                    idsToSHow = ids
+                }
+                switch (showWarning) {
+                    case 1:
+                        redoCalcsWithoutProfit = window.confirm(`Vi aqui que você incluiu o lucro em uma das suas contas, mais especificamente na(s) de número(s) ${idsToSHow}. Quer que eu o(s) tire?`)
+                        break;
+                    case 2:
+                        // Colocar botão abaixo do checkbox de multi, pra calcular o lucro. E fazer isso aqui salvar o lucro que tava
+                        redoCalcsWithoutProfit = window.confirm(`Vi aqui que você pretendia calcular várias linhas mas acabou colocando o lucro na(s) de número(s) ${idsToSHow}. Quer que eu o(s) tire?`)
+                        break;
+                }
+            }
+            if (redoCalcsWithoutProfit) {
+                clear('calculations')
+                for (let calc of results) {
+                    calculationsDiv.append('\n')
+                    calculationsDiv.append(`${calc.noProfitText} \n ${calc.noProfitCalc}`)
+                    results.indexOf(calc) + 1 != results.length? calculationsDiv.append('\n'): 0
+                }
+            }
+        }
+    }
+}
+
 let tutorialShown = false
 function tutorial() {
     if (!tutorialShown) {
@@ -136,9 +190,7 @@ function tutorial() {
         calcDiv.id = 'calc'
         calcDiv.innerText = '(Preço da linha X peso do produto / peso da linha) + Horas X valor da hora; Acrescido do lucro, que é uma porcentagem desse valor.'
         
-        resDiv.append(create('br'))
         resDiv.append('O cálculo é feito da seguinte forma:')
-        resDiv.append(create('br'))
         resDiv.append(calcDiv)
 
         tutorialShown = true
@@ -147,69 +199,106 @@ function tutorial() {
 tutorial()
 
 let resDivIsClean = true
-function clear() {
-    let confirm = true
-    updateInputs()
-    if (isThereValidInput) {
-        confirm = window.confirm('Tem certeza? Isso vai apagar todos os dados escritos!!')
-    } 
-    if (confirm) {
-        inputs.string.price.value = ''
-        inputs.string.weight.value = ''
-        inputs.productWeight.value = ''
-        inputs.hours.worked.value = ''
-        inputs.hours.value.value = ''
-        inputs.profit.value = ''
-        resDiv.innerHTML = ''
-        tutorialShown = false
-        resDivIsClean? 0: resDivIsClean = true
-
-        if (inputs.discount.box.checked) {
-            toggleDiscount()
-            inputs.discount.box.checked = false
+let calculationsDiv = create('div')
+function clear (where = 'all') {
+    if (where == 'calculations') {
+        calculationsDiv.innerHTML = ''
+    } else if (where == 'all') {
+        let confirm = true
+        updateInputs()
+        if (isThereValidInput) {
+            confirm = window.confirm('Tem certeza? Isso vai apagar todos os dados escritos e seus cálculos!!')
+        } 
+        if (confirm) {
+            inputs.string.price.value = ''
+            inputs.string.weight.value = ''
+            inputs.productWeight.value = ''
+            inputs.hours.worked.value = ''
+            inputs.hours.value.value = ''
+            inputs.profit.value = ''
+            resDiv.innerHTML = ''
+            tutorialShown = false
+            resDivIsClean? 0: resDivIsClean = true
+    
+            howManyCalcs = 0
+            calculations = new Array()
+    
+            if (inputs.discount.box.checked) {
+                toggleDiscount()
+                inputs.discount.box.checked = false
+            }
+            
+            if (inputs.multi.box.checked) inputs.multi.box.checked = false
         }
-        
-        if (inputs.multi.box.checked) inputs.multi.box.checked = false
     }
 }
 
 inputs.discount.box.addEventListener('change', toggleDiscount)
-inputs.btn.calc.addEventListener('click', calculate)
-inputs.btn.clear.addEventListener('click', clear)
+inputs.multi.box.addEventListener('change', toggleMulti)
+inputs.btn.calc.addEventListener('click', () => calculate())
+inputs.btn.clear.addEventListener('click', () => clear('all'))
 inputs.btn.tutorial.addEventListener('click', tutorial)
 
+let howManyCalcs = 0
+let calculations = new Array()
+let temporaryText = null
+let bypassVerification = false
 let multiCalcWarningShown = false
 let firstCalc = true
-function calculate() {
+function calculate () {
     updateInputs()
     setInputsAsValues()
     try {
-        if (allInputsAreValid && !inputs.profit && inputs.multi.bpx.checked) {
+        if (allInputsAreValid && !inputs.profit && !inputs.multi.box.checked) {
             let continuar = window.confirm('Quer mesmo calcular sem o lucro?')
-            if (!continuar) return 0 
-        } else if (inputs.multi.box.checked && (inputs.profit || (Number(inputs.profit) == 0 && inputs.profit != ''))) {
+            if (!continuar) {
+                return 0 
+            } else {
+                updateInputs()
+                inputs.profit.value = 0
+                setInputsAsValues()
+            }
+        } else if (inputs.multi.box.checked && (isProfitValid || Number(inputs.profit) < 0 )) {
             throw 'Calculando várias linhas, você calcula o lucro por último, apenas ele, depois de todas as linhas. Limpa o campo de lucro pra gente poder fazer a conta!'
         }
-        if (allInputsAreBlank) {
-            throw 'Todos os campos estão vazios, começa a preencher pra gente fazer a conta!'
-        } else if (!inputs.multi.box.checked && (!inputs.profit || Number(inputs.profit) < 0)) {
-            throw 'O lucro precisa ser pelo menos 0. Ou seja, sem lucro!'
-        } else if (!inputs.string.price || Number(inputs.string.price) <= 0) {
-            throw 'Você precisa fornecer um valor pra linha que seja pelo menos centavos!'
-        } else if (!inputs.string.weight || Number(inputs.string.weight) < 1) {
-            throw 'Cuidado pra linha não sair voando!'
-        } else if (!inputs.productWeight || Number(inputs.productWeight) < 1) {
-            throw 'O peso do produto tem que ser pelo menos 1 grama'
-        } else if (!inputs.hours.worked || Number(inputs.hours.worked) <= 0) {
-            throw 'Informe pelo menos alguns minutos de trabalho. Basta dividir os minutos por 60!'
-        } else if (!inputs.hours.value) {
-            throw 'Informe um valor para suas horas de trabalho'
-        } else if (Number(inputs.hours.value) < 5) {
-            throw `${inputs.hours.value}? Sério? Suas horas valem bem mais que isso!`
-        } else if (Number(inputs.hours.value) < 10) {
-            throw `${inputs.hours.value} reais ainda está pouco, aumenta mais aí!`
-        } else if (Number(inputs.hours.value) == 10) {
-            window.alert('A sua hora ainda vale mais que isso, mas eu vou te deixar fazer a conta.')
+        if (inputs.multi.box.checked && allInputsAreBlank) {
+            if (howManyCalcs < 2) {
+                throw 'Pra calcular o lucro, você precisa ter calculado pelo menos o valor de duas linhas/produtos!'
+            } else if (howManyCalcs >= 2) {
+                let continuar = window.confirm('Dessa forma você vai calcular o lucro em cima de todas as linhas calculadas, deseja mesmo fazer isso?')
+                if (continuar) bypassVerification = true; else return 0
+            }
+        }
+        if (!bypassVerification) {
+            if (allInputsAreBlank) {
+                throw 'Todos os campos estão vazios, começa a preencher pra gente fazer a conta!'
+            } else if (!inputs.multi.box.checked && (!inputs.profit || Number(inputs.profit) < 0)) {
+                throw 'O lucro precisa ser pelo menos 0. Ou seja, sem lucro!'
+            } else if (!inputs.string.price || Number(inputs.string.price) <= 0) {
+                throw 'Você precisa fornecer um valor pra linha que seja pelo menos centavos!'
+            } else if (!inputs.string.weight || Number(inputs.string.weight) < 1) {
+                throw 'Cuidado pra linha não sair voando!'
+            } else if (!inputs.productWeight || Number(inputs.productWeight) < 1) {
+                throw 'O peso do produto tem que ser pelo menos 1 grama'
+            } else if (!inputs.hours.worked || Number(inputs.hours.worked) <= 0) {
+                throw 'Informe pelo menos alguns minutos de trabalho. Basta dividir os minutos por 60!'
+            } else if (!inputs.hours.value) {
+                throw 'Informe um valor para suas horas de trabalho'
+            } else if (Number(inputs.hours.value) < 5) {
+                throw `${inputs.hours.value}? Sério? Suas horas valem bem mais que isso!`
+            } else if (Number(inputs.hours.value) < 10) {
+                throw `${inputs.hours.value} reais ainda está pouco, aumenta mais aí!`
+            } else if (Number(inputs.hours.value) == 10) {
+                window.alert('A sua hora ainda vale mais que isso, mas eu vou te deixar fazer a conta.')
+            }
+        } else if (bypassVerification) {
+            if (!allInputsAreBlank) {
+                throw 'Pra calcular só o lucro das linhas não pode haver nenhum outro campo preenchido além do lucro e do desconto!'
+            } else {
+                if (inputs.multi.box.checked && (!inputs.profit || Number(inputs.profit) < 0)) {
+                    throw 'Informe um lucro que seja pelo menos uma fração de porcentagem pra gente calcular o lucro em cima de todas as linhas!'
+                }
+            }
         }
         if (inputs.discount.box.checked) {
             if (!inputs.discount.rad.value.checked && !inputs.discound.rad.percent.checked) {
@@ -218,21 +307,41 @@ function calculate() {
                 throw 'O desconto precisa ser uma fração ou de porcentagem ou de reais. Se optar por não descontar, cancele o desconto pra gente fazer a conta!'
             }
         }
-    } catch (e) { window.alert(e); return 0 }
+    } catch (e) {
+        if (e instanceof EvalError || e instanceof RangeError || e instanceof ReferenceError || e instanceof SyntaxError || e instanceof TypeError || e instanceof URIError) {
+            window.alert(`Ocorreu um erro no trycatch da função calculate, por favor, contate o desenvolvedor. \n \n Código de erro: \n "${e}"`)
+            console.log(e)
+        } else { window.alert(e) }
+        return 0
+    }
     
     firstCalc? firstCalc = false: 0
     resDivIsClean? resDivIsClean = false: 0
-
+    
+    howManyCalcs++
+    
     let x = Number((inputs.string.price * inputs.productWeight / inputs.string.weight).toFixed(2))
     let y = Number((inputs.hours.worked * inputs.hours.value).toFixed(2))
     let z = Number((inputs.profit/100*(y+x)).toFixed(2))
     let calc = x + y + z
     
     let res = `(${inputs.string.price}$ * ${inputs.productWeight}g / ${inputs.string.weight}g) + (${inputs.hours.worked}h * ${inputs.hours.value}$) + ${inputs.profit}%`
-    resDiv.append(create('br'))
-    resDiv.append(res)
-    resDiv.append(create('br'))
-    resDiv.append(`${x} + ${y} + ${z}`)
-    resDiv.append(create('br'))
-    resDiv.append(calc)
+    
+    temporaryText = `${res} \n ${x} + ${y} + ${z} \n ${calc}`
+    calculations.push(temporaryText)
+    
+    results.push({ 
+        noProfitCalc: x + y,
+        result: res,
+        noProfitText: `(${inputs.string.price}$ * ${inputs.productWeight}g / ${inputs.string.weight}g) + (${inputs.hours.worked}h * ${inputs.hours.value}$)`,
+        resultText: temporaryText,
+        multiChecked: inputs.multi.box.checked,
+        profit: inputs.profit,
+        id: howManyCalcs,
+    })
+    
+    calculationsDiv.append(create('br'))
+    calculationsDiv.append(temporaryText + '\n')
+    
+    resDiv.append(calculationsDiv)
 }
