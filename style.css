@@ -31,6 +31,7 @@ div.small {
     font-size: small;
 }
 
-cinza {
-    color: rgb(104, 104, 104);
+strong {
+    font-weight: 700;
+    color: #393939;
 }
