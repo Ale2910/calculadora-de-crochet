@@ -22,7 +22,7 @@ let inputs = {
     btn: {
         calc: window.document.getElementById('calc'),
         clear: window.document.getElementById('clear'),
-        tutorial: window.document.getElementById('tutorial'),
+        tutorial: window.document.getElementById('tutorial_btn'),
     },
     multi: {
         box: window.document.getElementById('multi'),
@@ -182,27 +182,38 @@ const toggleMulti = () => {
     }
 }
 
+const TutorialDiv = window.document.getElementById('tutorial_div')
 let tutorialShown = false
+let tutorialCreated = false
+let tutorialParag = create('p')
 function tutorial() {
     if (!tutorialShown) {
-        const calcDiv = create('div')
-        calcDiv.className = 'small'
-        calcDiv.id = 'calc'
-        calcDiv.innerText = '(Preço da linha X peso do produto / peso da linha) + Horas X valor da hora; Acrescido do lucro, que é uma porcentagem desse valor.'
-        
-        resDiv.append('O cálculo é feito da seguinte forma:')
-        resDiv.append(calcDiv)
-
-        tutorialShown = true
+        if (!tutorialCreated) {
+            const tutorialText = create('div')
+            tutorialText.className = 'small'
+            tutorialText.id = 'tutTxt'
+            tutorialText.innerText = '(Preço da linha X peso do produto / peso da linha) + Horas X valor da hora; Acrescido do lucro, que é uma porcentagem desse valor.'
+            
+            tutorialParag.append('O cálculo é feito da seguinte forma:')
+            tutorialParag.append(tutorialText)
+            TutorialDiv.append(tutorialParag)
+            
+            tutorialShown = true
+            tutorialCreated = true
+        } else if (tutorialCreated) {
+            tutorialShown = true
+            TutorialDiv.append(tutorialParag)
+        }
     } else window.alert('O tutorial já está escrito!')
 }
 tutorial()
 
 let resDivIsClean = true
-let calculationsDiv = create('div')
+const CalculationsDiv = create('div')
+CalculationsDiv.id = 'calc_div'
 function clear (where = 'all') {
     if (where == 'calculations') {
-        calculationsDiv.innerHTML = ''
+        CalculationsDiv.innerHTML = ''
     } else if (where == 'all') {
         let confirm = true
         updateInputs()
@@ -217,12 +228,17 @@ function clear (where = 'all') {
             inputs.hours.value.value = ''
             inputs.profit.value = ''
             resDiv.innerHTML = ''
-            tutorialShown = false
             resDivIsClean? 0: resDivIsClean = true
-    
+            
             howManyCalcs = 0
             calculations = new Array()
-    
+            results = new Array()
+            
+            if (tutorialShown) {
+                tutorialShown = false
+                TutorialDiv.removeChild(tutorialParag)
+            }
+
             if (inputs.discount.box.checked) {
                 toggleDiscount()
                 inputs.discount.box.checked = false
@@ -327,7 +343,7 @@ function calculate () {
     
     let res = `(${inputs.string.price}$ * ${inputs.productWeight}g / ${inputs.string.weight}g) + (${inputs.hours.worked}h * ${inputs.hours.value}$) + ${inputs.profit}%`
     
-    temporaryText = `${res} \n ${x} + ${y} + ${z} \n ${calc}`
+    temporaryText = `\n ${res} \n ${x} + ${y} + ${z} \n ${calc}`
     calculations.push(temporaryText)
     
     results.push({ 
@@ -340,8 +356,7 @@ function calculate () {
         id: howManyCalcs,
     })
     
-    calculationsDiv.append(create('br'))
-    calculationsDiv.append(temporaryText + '\n')
+    CalculationsDiv.append(temporaryText + '\n')
     
-    resDiv.append(calculationsDiv)
+    resDiv.append(CalculationsDiv)
 }
