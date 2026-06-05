@@ -183,26 +183,24 @@ const toggleMulti = () => {
 }
 
 const TutorialDiv = window.document.getElementById('tutorial_div')
+const TutorialContent = create('div')
 let tutorialShown = false
 let tutorialCreated = false
-let tutorialParag = create('p')
 function tutorial() {
     if (!tutorialShown) {
         if (!tutorialCreated) {
-            const tutorialText = create('div')
-            tutorialText.className = 'small'
-            tutorialText.id = 'tutTxt'
-            tutorialText.innerText = '(Preço da linha X peso do produto / peso da linha) + Horas X valor da hora; Acrescido do lucro, que é uma porcentagem desse valor.'
+            TutorialContent.className = 'small'
+            TutorialContent.id = 'tutTxt'
+            TutorialContent.innerHTML = '\n <strong><big> O cálculo é feito da seguinte forma: </big></strong> \n (Preço da linha X peso do produto / peso da linha) + Horas X valor da hora; Acrescido do lucro, que é uma porcentagem desse valor. \n'
             
-            tutorialParag.append('O cálculo é feito da seguinte forma:')
-            tutorialParag.append(tutorialText)
-            TutorialDiv.append(tutorialParag)
+            TutorialDiv.append('')
+            TutorialDiv.append(TutorialContent)
             
             tutorialShown = true
             tutorialCreated = true
         } else if (tutorialCreated) {
             tutorialShown = true
-            TutorialDiv.append(tutorialParag)
+            TutorialDiv.append(TutorialContent)
         }
     } else window.alert('O tutorial já está escrito!')
 }
@@ -236,7 +234,7 @@ function clear (where = 'all') {
             
             if (tutorialShown) {
                 tutorialShown = false
-                TutorialDiv.removeChild(tutorialParag)
+                TutorialDiv.removeChild(TutorialContent)
             }
 
             if (inputs.discount.box.checked) {
